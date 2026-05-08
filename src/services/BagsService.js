@@ -5,17 +5,30 @@ const SOL_MINT = 'So11111111111111111111111111111111';
 
 // Use proxy in production to avoid CORS, direct API in development
 const isProd = import.meta.env.PROD;
-const API_BASE = isProd ? '/api/bags' : BAGS_API_BASE;
 
 const apiKey = import.meta.env.VITE_BAGS_API_KEY || '';
 
 async function bagsFetch(endpoint, options = {}) {
-  const url = `${API_BASE}${endpoint}`;
-  const headers = {
-    'Content-Type': 'application/json',
-    ...(!isProd && apiKey ? { 'x-api-key': apiKey } : {}),
-    ...options.headers,
-  };
+  let url, headers;
+
+  if (isProd) {
+    // Production: use Vercel serverless proxy
+    const pathParam = endpoint.startsWith('/') ? endpoint : '/' + endpoint;
+    url = `/api/proxy?_path=${encodeURIComponent(pathParam)}`;
+    headers = {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    };
+  } else {
+    // Development: direct API call
+    url = `${BAGS_API_BASE}${endpoint}`;
+    headers = {
+      'Content-Type': 'application/json',
+      ...(apiKey ? { 'x-api-key': apiKey } : {}),
+      ...options.headers,
+    };
+  }
+
   const res = await fetch(url, { ...options, headers });
   if (!res.ok) {
     const text = await res.text();

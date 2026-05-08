@@ -1,10 +1,9 @@
 // Vercel serverless proxy for Bags API
-// Avoids CORS issues and keeps API key server-side
+// Route: /api/proxy?path=/token-launch/feed&limit=20
 
 const BAGS_API_BASE = 'https://public-api-v2.bags.fm/api/v1';
 
 export default async function handler(req, res) {
-  // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-api-key');
@@ -15,17 +14,20 @@ export default async function handler(req, res) {
 
   const apiKey = process.env.VITE_BAGS_API_KEY || process.env.BAGS_API_KEY;
   if (!apiKey) {
-    return res.status(500).json({ error: 'Bags API key not configured' });
+    return res.status(500).json({ error: 'Bags API key not configured on server' });
   }
 
-  // Reconstruct the path: /api/bags/<rest>
-  const pathSegments = req.query.path || [];
-  const apiPath = '/' + pathSegments.join('/');
-  
-  // Build query string from remaining query params (exclude 'path')
-  const { path: _, ...queryParams } = req.query;
+  const apiPath = req.query._path || req.query.path || '';
+  if (!apiPath) {
+    return res.status(400).json({ error: 'Missing path parameter' });
+  }
+
+  // Remove proxy-specific params
+  const { _path, path, ...queryParams } = req.query;
   const qs = new URLSearchParams(queryParams).toString();
-  const url = `${BAGS_API_BASE}${apiPath}${qs ? '?' + qs : ''}`;
+  const url = `${BAGS_API_BASE}${apiPath.startsWith('/') ? apiPath : '/' + apiPath}${qs ? '?' + qs : ''}`;
+
+  console.log(`[Bags Proxy] ${req.method} ${url}`);
 
   try {
     const fetchOptions = {
@@ -50,7 +52,7 @@ export default async function handler(req, res) {
       return res.send(data);
     }
   } catch (err) {
-    console.error('Bags proxy error:', err);
+    console.error('[Bags Proxy] Error:', err);
     return res.status(502).json({ error: 'Proxy error', message: err.message });
   }
 }
