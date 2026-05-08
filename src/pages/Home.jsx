@@ -11,6 +11,9 @@ const Home = () => {
       <section className="pt-24 pb-16 px-4">
         <div className="max-w-5xl mx-auto text-center">
           <div className="inline-block mb-6">
+            <img src="/logo.svg" alt="ScoutTip Logo" className="w-24 h-24 mx-auto mb-4 drop-shadow-lg" />
+          </div>
+          <div className="inline-block mb-6">
             <span className="badge badge-purple text-sm px-4 py-1.5">🔥 Built on Solana • Powered by Bags API</span>
           </div>
           <h1 className="text-4xl sm:text-5xl md:text-7xl font-black mb-6 leading-tight">
@@ -119,7 +122,7 @@ const Home = () => {
       <footer className="py-8 px-4 border-t border-white/5">
         <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <span className="text-xl">🔍</span>
+            <img src="/logo.svg" alt="ScoutTip" className="h-7 w-7 rounded-lg" />
             <span className="font-bold gradient-text">ScoutTip</span>
             <span className="text-gray-500 text-sm ml-2">Built for BAGS Hackathon</span>
           </div>

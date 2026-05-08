@@ -38,7 +38,7 @@ async function bagsFetch(endpoint, options = {}) {
 }
 
 export async function getTokenFeed(limit = 20) {
-  const data = await bagsFetch(`/token-launch/feed?limit=${limit}`);
+  const data = await bagsFetch('/token-launch/feed');
   return data?.success ? data.response : data;
 }
 

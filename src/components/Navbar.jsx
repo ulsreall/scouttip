@@ -21,7 +21,7 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <Link to="/" className="flex items-center gap-2">
-            <span className="text-2xl">🔍</span>
+            <img src="/logo.svg" alt="ScoutTip" className="h-8 w-8 rounded-lg" />
             <span className="text-xl font-bold gradient-text">ScoutTip</span>
           </Link>
 
