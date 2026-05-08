@@ -1,58 +1,58 @@
 import React, { useState } from 'react';
+import { analyzeTokenRisk } from '../services/SolscanService';
 
 const RiskChecker = () => {
   const [input, setInput] = useState('');
   const [result, setResult] = useState(null);
   const [checking, setChecking] = useState(false);
+  const [error, setError] = useState('');
 
-  const mockRiskCheck = async (query) => {
-    setChecking(true);
-    await new Promise(r => setTimeout(r, 2500));
-
-    const risks = [
-      { level: 'low', score: 15, label: 'Low Risk', color: '#22c55e', icon: '✅',
-        details: ['Contract verified on Solscan', 'No suspicious mint functions', 'Liquidity locked for 6 months', 'Active development (12 commits this week)'],
-        recommendation: 'Looks safe to interact with. Always DYOR and start with small amounts.' },
-      { level: 'medium', score: 55, label: 'Medium Risk', color: '#f97316', icon: '⚠️',
-        details: ['Contract verified but has upgrade authority', 'Concentrated token holdings (top 10 own 65%)', 'Social media activity seems organic', 'No audit found'],
-        recommendation: 'Proceed with caution. Consider limiting exposure and monitoring closely.' },
-      { level: 'high', score: 85, label: 'High Risk', color: '#ef4444', icon: '🚨',
-        details: ['Unverified smart contract', 'Hidden mint authority detected', 'Fake social media followers (78% bots)', 'Similar pattern to known rug pulls', 'Liquidity NOT locked'],
-        recommendation: 'Do NOT interact. Multiple red flags detected. Report to the community.' },
-    ];
-
-    setResult(risks[Math.floor(Math.random() * risks.length)]);
-    setChecking(false);
-  };
-
-  const handleCheck = () => {
+  const handleCheck = async () => {
     if (!input.trim()) return;
-    mockRiskCheck(input);
+    setChecking(true);
+    setError('');
+    setResult(null);
+
+    try {
+      const risk = await analyzeTokenRisk(input.trim());
+      setResult(risk);
+    } catch (err) {
+      setError('Failed to analyze. Make sure you entered a valid Solana token address.');
+      console.error(err);
+    } finally {
+      setChecking(false);
+    }
   };
 
   return (
     <div className="glass-card p-6 md:p-8">
-      <h2 className="text-2xl font-bold text-white mb-2">🛡️ AI Risk Checker</h2>
-      <p className="text-gray-400 mb-6">Enter a token address, project name, or URL to check its safety score</p>
+      <h2 className="text-2xl font-bold text-white mb-2">{'\u{1F6E1}'} AI Risk Checker</h2>
+      <p className="text-gray-400 mb-6">Enter a Solana token address to check its safety score via on-chain analysis</p>
 
-      <div className="flex gap-3 mb-6">
+      <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <input
           type="text"
           value={input}
           onChange={e => setInput(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && handleCheck()}
-          placeholder="Enter token address, project name, or URL..."
+          placeholder="Enter Solana token mint address..."
           className="input-dark flex-1"
         />
         <button onClick={handleCheck} disabled={checking || !input.trim()} className="btn-primary disabled:opacity-50 whitespace-nowrap">
-          {checking ? '⏳ Checking...' : '🔍 Check'}
+          {checking ? '...' : 'Check'}
         </button>
       </div>
+
+      {error && (
+        <div className="p-4 rounded-xl mb-4" style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)' }}>
+          <p className="text-sm text-red-400">{error}</p>
+        </div>
+      )}
 
       {checking && (
         <div className="text-center py-12">
           <div className="inline-block w-12 h-12 border-4 border-purple-500/30 border-t-purple-500 rounded-full animate-spin mb-4"></div>
-          <p className="text-gray-400">Analyzing on-chain data & social signals...</p>
+          <p className="text-gray-400">Analyzing on-chain data via Solscan...</p>
         </div>
       )}
 
@@ -73,8 +73,8 @@ const RiskChecker = () => {
 
           <div className="space-y-2">
             {result.details.map((detail, i) => (
-              <div key={i} className="flex items-center gap-2 text-sm text-gray-300">
-                <span style={{ color: result.color }}>•</span> {detail}
+              <div key={i} className="flex items-start gap-2 text-sm text-gray-300">
+                <span style={{ color: result.color }}>{'\u2022'}</span> {detail}
               </div>
             ))}
           </div>
@@ -82,13 +82,20 @@ const RiskChecker = () => {
           <div className="p-4 rounded-xl" style={{ background: 'rgba(168,85,247,0.1)', border: '1px solid rgba(168,85,247,0.2)' }}>
             <p className="text-sm text-purple-300"><strong>AI Recommendation:</strong> {result.recommendation}</p>
           </div>
+
+          <div className="p-3 rounded-xl text-center" style={{ background: 'rgba(34,211,238,0.08)', border: '1px solid rgba(34,211,238,0.2)' }}>
+            <p className="text-xs text-cyan-400">
+              Data powered by Solscan API | Token: {input.slice(0, 8)}...{input.slice(-6)}
+            </p>
+          </div>
         </div>
       )}
 
-      {!result && !checking && (
+      {!result && !checking && !error && (
         <div className="text-center py-8 text-gray-500">
-          <div className="text-4xl mb-3">🔍</div>
-          <p>Enter a project above to start the risk analysis</p>
+          <div className="text-4xl mb-3">{'\u{1F50D}'}</div>
+          <p>Enter a Solana token address above to start the risk analysis</p>
+          <p className="text-xs mt-2 text-gray-600">Powered by Solscan on-chain data</p>
         </div>
       )}
     </div>
