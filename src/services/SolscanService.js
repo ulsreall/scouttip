@@ -1,16 +1,23 @@
 // Solana on-chain Risk Checker
-// Uses Solana RPC + Bags API (no Solscan needed)
+// Uses Solana RPC (via proxy in prod) + Bags API
 
 import { getTokenFeed } from './BagsService';
 
 const SOLANA_RPC = 'https://api.mainnet-beta.solana.com';
+const isProd = import.meta.env.PROD;
 
 async function rpcCall(method, params) {
-  const res = await fetch(SOLANA_RPC, {
+  const rpcBody = { jsonrpc: '2.0', id: 1, method, params };
+
+  const url = isProd ? '/api/solana' : SOLANA_RPC;
+
+  const res = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
+    body: JSON.stringify(rpcBody),
   });
+
+  if (!res.ok) throw new Error(`RPC error ${res.status}`);
   const data = await res.json();
   if (data.error) throw new Error(data.error.message);
   return data.result;
@@ -192,10 +199,10 @@ export async function analyzeTokenRisk(tokenAddress) {
     score -= 10;
     positives.push(`✅ Listed on Bags feed as "${bagsToken.name}" ($${bagsToken.symbol})`);
     if (bagsToken.twitter) {
-      positives.push(`✅ Has linked Twitter/X account`);
+      positives.push('✅ Has linked Twitter/X account');
     }
     if (bagsToken.website) {
-      positives.push(`✅ Has linked website`);
+      positives.push('✅ Has linked website');
     }
     if (bagsToken.status === 'GRAD') {
       positives.push('✅ Graduated from bonding curve');
@@ -266,7 +273,7 @@ export async function analyzeTokenRisk(tokenAddress) {
     icon,
     details: [...flags, '', '--- Positive Signals ---', ...positives],
     recommendation,
-    tokenName: bagsToken?.name || supplyInfo?.uiAmountString ? 'Unknown Token' : null,
+    tokenName: bagsToken?.name || null,
     tokenSymbol: bagsToken?.symbol || null,
   };
 }
