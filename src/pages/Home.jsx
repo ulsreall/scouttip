@@ -2,134 +2,228 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useWallet } from '@solana/wallet-adapter-react';
 
+const STEPS = [
+  {
+    num: '01',
+    icon: '🔍',
+    title: 'Scout & Discover',
+    desc: 'Browse the live feed of community tokens launching on Solana via Bags API. Find alpha before everyone else.',
+    color: '#a855f7',
+  },
+  {
+    num: '02',
+    icon: '🛡️',
+    title: 'Check Risk First',
+    desc: 'Paste any token address → get instant on-chain risk analysis. Check mint authority, holder distribution, and red flags.',
+    color: '#22d3ee',
+  },
+  {
+    num: '03',
+    icon: '💸',
+    title: 'Tip & Earn',
+    desc: 'Send SOL tips to scouts who share valuable insights. Every tip is recorded on-chain — build real reputation.',
+    color: '#f97316',
+  },
+  {
+    num: '04',
+    icon: '🚀',
+    title: 'Launch Your Token',
+    desc: 'Create your own community token through Bags API in seconds. Set up fee sharing and start building your economy.',
+    color: '#22c55e',
+  },
+];
+
+const FEATURES = [
+  {
+    icon: '⚡',
+    title: 'Real-Time Token Feed',
+    desc: 'Live data from Bags API — see every new token launch on Solana as it happens, with links to X, website, and on-chain explorer.',
+    link: '/tokens',
+    linkText: 'Explore Tokens',
+  },
+  {
+    icon: '🛡️',
+    title: 'On-Chain Risk Analysis',
+    desc: 'Instant safety check for any SPL token. Analyzes mint authority, freeze authority, holder concentration, and Bags listing status.',
+    link: '/risk-check',
+    linkText: 'Try Risk Checker',
+  },
+  {
+    icon: '🤝',
+    title: 'Social Tipping',
+    desc: 'Connect your Solana wallet and send SOL tips directly to other scouts. Support the people sharing the best alpha.',
+    link: '/feed',
+    linkText: 'View Feed',
+  },
+  {
+    icon: '🪙',
+    title: 'One-Click Token Launch',
+    desc: 'Launch a token through Bags API with just a name, symbol, and description. Includes fee sharing config and bonding curve setup.',
+    link: '/tokens',
+    linkText: 'Launch Token',
+  },
+];
+
 const Home = () => {
   const { connected } = useWallet();
 
   return (
-    <div className="bg-grid min-h-screen">
-      {/* Hero */}
-      <section className="pt-24 pb-16 px-4">
-        <div className="max-w-5xl mx-auto text-center">
-          <div className="inline-block mb-6">
-            <img src="/logo.svg" alt="ScoutTip Logo" className="w-24 h-24 mx-auto mb-4 drop-shadow-lg" />
+    <div className="min-h-screen">
+      {/* ===== HERO ===== */}
+      <section className="pt-28 pb-20 px-4 relative overflow-hidden">
+        {/* Background glow */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] rounded-full pointer-events-none" style={{ background: 'radial-gradient(ellipse, rgba(168,85,247,0.08) 0%, transparent 70%)' }} />
+
+        <div className="max-w-4xl mx-auto text-center relative z-10">
+          {/* Logo */}
+          <img src="/logo.svg" alt="ScoutTip" className="w-20 h-20 mx-auto mb-6 rounded-2xl shadow-lg" />
+
+          {/* Badge */}
+          <div className="inline-block mb-5">
+            <span className="badge badge-purple text-xs px-3 py-1">Built on Solana • Powered by Bags API</span>
           </div>
-          <div className="inline-block mb-6">
-            <span className="badge badge-purple text-sm px-4 py-1.5">🔥 Built on Solana • Powered by Bags API</span>
-          </div>
-          <h1 className="text-4xl sm:text-5xl md:text-7xl font-black mb-6 leading-tight">
-            <span className="gradient-text">Tip Scouts.</span><br/>
-            <span className="text-white">Reward Alpha.</span><br/>
-            <span className="gradient-text-warm">Launch Tokens.</span>
+
+          {/* Headline */}
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-black mb-5 leading-tight">
+            <span className="gradient-text">Discover. Analyze.</span><br />
+            <span className="text-white">Tip. Launch.</span>
           </h1>
-          <p className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-10">
-            The social tipping platform where Web3 scouts earn by sharing valuable insights. 
-            Launch community tokens, tip your favorite scouts, and build reputation on-chain.
+
+          {/* Subtitle */}
+          <p className="text-base md:text-lg text-gray-400 max-w-xl mx-auto mb-8 leading-relaxed">
+            The all-in-one platform for Solana token scouting.
+            Check risk before you buy, tip the best scouts, and launch your own token — all from one place.
           </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link to="/feed" className="btn-primary text-base px-8 py-3.5">
-              🚀 Explore Feed
-            </Link>
-            <Link to="/tokens" className="btn-secondary text-base px-8 py-3.5">
-              🪙 Launch Token
-            </Link>
-          </div>
 
-          {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-16">
-            {[
-              { label: 'Tips Sent', value: '12,847', icon: '💸' },
-              { label: 'Active Scouts', value: '2,341', icon: '🔍' },
-              { label: 'Tokens Launched', value: '156', icon: '🪙' },
-              { label: 'Total Volume', value: '$2.4M', icon: '📊' },
-            ].map((stat, i) => (
-              <div key={i} className="glass-card p-5 text-center hover:border-purple-500/30 transition-all">
-                <div className="text-2xl mb-2">{stat.icon}</div>
-                <div className="text-2xl font-bold text-white">{stat.value}</div>
-                <div className="text-sm text-gray-400">{stat.label}</div>
-              </div>
-            ))}
+          {/* CTA Buttons */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+            <Link to="/tokens" className="btn-primary text-sm px-7 py-3">
+              🪙 Explore Tokens
+            </Link>
+            <Link to="/risk-check" className="btn-secondary text-sm px-7 py-3">
+              🛡️ Check a Token
+            </Link>
           </div>
         </div>
       </section>
 
-      {/* How It Works */}
+      {/* ===== HOW IT WORKS ===== */}
       <section className="py-16 px-4">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12">
-            How <span className="gradient-text">ScoutTip</span> Works
+          <p className="text-center text-xs uppercase tracking-widest text-purple-400 mb-2 font-semibold">Simple Workflow</p>
+          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-12 text-white">
+            How ScoutTip Works
           </h2>
-          <div className="grid md:grid-cols-3 gap-6">
-            {[
-              { step: '01', title: 'Scout & Share', desc: 'Scouts share alpha, tutorials, airdrop leads, and security alerts on the feed.', icon: '📡', color: '#a855f7' },
-              { step: '02', title: 'Tip & Earn', desc: 'Tip valuable content with SOL or community tokens. Scouts earn reputation on-chain.', icon: '💰', color: '#22d3ee' },
-              { step: '03', title: 'Launch Tokens', desc: 'Create your own community token via Bags API. Build your own tipping economy.', icon: '🚀', color: '#f97316' },
-            ].map((item, i) => (
-              <div key={i} className="glass-card p-6 relative overflow-hidden group">
-                <div className="absolute top-4 right-4 text-6xl font-black opacity-5 group-hover:opacity-10 transition-opacity" style={{ color: item.color }}>{item.step}</div>
-                <div className="text-3xl mb-4">{item.icon}</div>
-                <h3 className="text-xl font-bold text-white mb-2">{item.title}</h3>
-                <p className="text-gray-400 text-sm leading-relaxed">{item.desc}</p>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {STEPS.map((step, i) => (
+              <div key={i} className="glass-card p-5 relative group hover:border-purple-500/40 transition-all">
+                {/* Step number */}
+                <div className="absolute top-3 right-4 text-4xl font-black opacity-[0.06]" style={{ color: step.color }}>{step.num}</div>
+                {/* Icon */}
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg mb-3" style={{ background: `${step.color}18`, border: `1px solid ${step.color}30` }}>
+                  {step.icon}
+                </div>
+                <h3 className="text-base font-bold text-white mb-1.5">{step.title}</h3>
+                <p className="text-xs text-gray-400 leading-relaxed">{step.desc}</p>
+                {/* Connector line (hidden on last card) */}
+                {i < STEPS.length - 1 && (
+                  <div className="hidden lg:block absolute top-1/2 -right-3 w-6 h-px bg-gradient-to-r from-purple-500/30 to-transparent" />
+                )}
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Features */}
+      {/* ===== FEATURES ===== */}
       <section className="py-16 px-4">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12">
-            Built for the <span className="gradient-text-warm">BAGS Hackathon</span>
+          <p className="text-center text-xs uppercase tracking-widest text-cyan-400 mb-2 font-semibold">What You Can Do</p>
+          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-12 text-white">
+            Everything You Need in One Platform
           </h2>
-          <div className="grid md:grid-cols-2 gap-6">
-            {[
-              { title: 'Bags API Integration', desc: 'Launch and manage tokens directly through the Bags API. Deep integration earns higher hackathon ranking.', tag: 'Bags API', tagColor: 'badge-purple' },
-              { title: 'AI Risk Checker', desc: 'Before tipping or buying any token, run it through our AI risk analysis — check contracts, social signals, and liquidity.', tag: 'AI', tagColor: 'badge-cyan' },
-              { title: 'On-Chain Reputation', desc: 'Every tip, every find, every alert is recorded on-chain. Build verifiable scout reputation that cannot be faked.', tag: 'Social Finance', tagColor: 'badge-green' },
-              { title: 'Fee Sharing Model', desc: 'Platform fees are shared with top scouts. The more valuable your content, the more you earn from the ecosystem.', tag: 'Fee Sharing', tagColor: 'badge-orange' },
-            ].map((feat, i) => (
-              <div key={i} className="glass-card p-6 flex gap-4">
-                <div className="flex-shrink-0 mt-1">
-                  <span className={`badge ${feat.tagColor}`}>{feat.tag}</span>
+
+          <div className="grid md:grid-cols-2 gap-5">
+            {FEATURES.map((feat, i) => (
+              <Link key={i} to={feat.link} className="glass-card p-6 flex gap-4 group hover:border-purple-500/40 transition-all no-underline">
+                <div className="flex-shrink-0 w-11 h-11 rounded-xl flex items-center justify-center text-xl" style={{ background: 'rgba(168,85,247,0.1)', border: '1px solid rgba(168,85,247,0.2)' }}>
+                  {feat.icon}
                 </div>
-                <div>
-                  <h3 className="text-lg font-bold text-white mb-2">{feat.title}</h3>
-                  <p className="text-gray-400 text-sm leading-relaxed">{feat.desc}</p>
+                <div className="flex-1">
+                  <h3 className="text-base font-bold text-white mb-1 group-hover:text-purple-300 transition-colors">{feat.title}</h3>
+                  <p className="text-xs text-gray-400 leading-relaxed mb-2">{feat.desc}</p>
+                  <span className="text-xs text-purple-400 font-medium group-hover:text-purple-300 transition-colors">{feat.linkText} →</span>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </div>
       </section>
 
-      {/* CTA */}
+      {/* ===== BAGS HACKATHON HIGHLIGHT ===== */}
       <section className="py-16 px-4">
-        <div className="max-w-3xl mx-auto text-center glass-card p-10" style={{ border: '1px solid rgba(168,85,247,0.3)' }}>
-          <h2 className="text-3xl font-bold text-white mb-4">Ready to Start Scouting?</h2>
-          <p className="text-gray-400 mb-8">Connect your Solana wallet and join the community of Web3 scouts.</p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link to="/feed" className="btn-primary text-base px-8 py-3.5">
+        <div className="max-w-4xl mx-auto">
+          <div className="glass-card p-8 md:p-10 text-center relative overflow-hidden" style={{ border: '1px solid rgba(168,85,247,0.25)' }}>
+            {/* Decorative gradient */}
+            <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse at center, rgba(168,85,247,0.05) 0%, transparent 70%)' }} />
+
+            <div className="relative z-10">
+              <span className="badge badge-purple text-xs mb-4">BAGS Hackathon</span>
+              <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3">Deep Bags API Integration</h2>
+              <p className="text-sm text-gray-400 max-w-lg mx-auto mb-8 leading-relaxed">
+                ScoutTip is built as a full-stack Bags API client — from token feed discovery to fee sharing configuration to one-click launches with bonding curves.
+              </p>
+
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[
+                  { label: 'Token Feed', icon: '📡' },
+                  { label: 'Launch API', icon: '🚀' },
+                  { label: 'Fee Sharing', icon: '💰' },
+                  { label: 'Risk Check', icon: '🛡️' },
+                ].map((item, i) => (
+                  <div key={i} className="p-3 rounded-xl" style={{ background: 'rgba(168,85,247,0.06)', border: '1px solid rgba(168,85,247,0.12)' }}>
+                    <div className="text-xl mb-1">{item.icon}</div>
+                    <div className="text-xs font-semibold text-gray-300">{item.label}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ===== FINAL CTA ===== */}
+      <section className="py-16 px-4">
+        <div className="max-w-2xl mx-auto text-center">
+          <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3">Start Scouting Today</h2>
+          <p className="text-sm text-gray-400 mb-8">
+            Connect your Solana wallet to tip scouts, launch tokens, and build your on-chain reputation.
+          </p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+            <Link to="/feed" className="btn-primary text-sm px-7 py-3">
               🔍 Explore the Feed
             </Link>
-            <Link to="/risk-check" className="btn-secondary text-base px-8 py-3.5">
+            <Link to="/risk-check" className="btn-secondary text-sm px-7 py-3">
               🛡️ Try Risk Checker
             </Link>
           </div>
         </div>
       </section>
 
-      {/* Footer */}
+      {/* ===== FOOTER ===== */}
       <footer className="py-8 px-4 border-t border-white/5">
         <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <img src="/logo.svg" alt="ScoutTip" className="h-7 w-7 rounded-lg" />
-            <span className="font-bold gradient-text">ScoutTip</span>
-            <span className="text-gray-500 text-sm ml-2">Built for BAGS Hackathon</span>
+            <img src="/logo.svg" alt="ScoutTip" className="h-6 w-6 rounded-lg" />
+            <span className="text-sm font-bold gradient-text">ScoutTip</span>
+            <span className="text-gray-600 text-xs ml-1">× BAGS Hackathon</span>
           </div>
-          <div className="flex items-center gap-6 text-sm text-gray-500">
+          <div className="flex items-center gap-5 text-xs text-gray-500">
             <a href="https://bags.fm" target="_blank" rel="noreferrer" className="hover:text-purple-400 transition-colors">Bags.fm</a>
             <a href="https://dorahacks.io" target="_blank" rel="noreferrer" className="hover:text-purple-400 transition-colors">DoraHacks</a>
-            <span>Solana</span>
+            <a href="https://solana.com" target="_blank" rel="noreferrer" className="hover:text-purple-400 transition-colors">Solana</a>
+            <a href="https://github.com/ulsreall/scouttip" target="_blank" rel="noreferrer" className="hover:text-purple-400 transition-colors">GitHub</a>
           </div>
         </div>
       </footer>
