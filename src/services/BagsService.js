@@ -1,15 +1,19 @@
-import { Transaction, LAMPORTS_PER_SOL } from '@solana/web3.js';
+import { LAMPORTS_PER_SOL } from '@solana/web3.js';
 
 const BAGS_API_BASE = 'https://public-api-v2.bags.fm/api/v1';
 const SOL_MINT = 'So11111111111111111111111111111111';
 
+// Use proxy in production to avoid CORS, direct API in development
+const isProd = import.meta.env.PROD;
+const API_BASE = isProd ? '/api/bags' : BAGS_API_BASE;
+
 const apiKey = import.meta.env.VITE_BAGS_API_KEY || '';
 
 async function bagsFetch(endpoint, options = {}) {
-  const url = `${BAGS_API_BASE}${endpoint}`;
+  const url = `${API_BASE}${endpoint}`;
   const headers = {
     'Content-Type': 'application/json',
-    ...(apiKey ? { 'x-api-key': apiKey } : {}),
+    ...(!isProd && apiKey ? { 'x-api-key': apiKey } : {}),
     ...options.headers,
   };
   const res = await fetch(url, { ...options, headers });
@@ -20,17 +24,11 @@ async function bagsFetch(endpoint, options = {}) {
   return res.json();
 }
 
-/**
- * Fetch trending tokens from Bags feed
- */
 export async function getTokenFeed(limit = 20) {
   const data = await bagsFetch(`/token-launch/feed?limit=${limit}`);
-  return data;
+  return data?.success ? data.response : data;
 }
 
-/**
- * Get a swap quote for buying/selling tokens
- */
 export async function getQuote(inputMint, outputMint, amountLamports) {
   const params = new URLSearchParams({
     inputMint,
@@ -42,9 +40,6 @@ export async function getQuote(inputMint, outputMint, amountLamports) {
   return data;
 }
 
-/**
- * Create a swap transaction (buy or sell)
- */
 export async function createSwapTransaction(quoteResponse, userPublicKey) {
   const data = await bagsFetch('/trade/swap', {
     method: 'POST',
@@ -56,9 +51,6 @@ export async function createSwapTransaction(quoteResponse, userPublicKey) {
   return data;
 }
 
-/**
- * Build token metadata (step 1 of token create flow)
- */
 export async function createTokenInfo({ name, symbol, description, imageUrl }) {
   const data = await bagsFetch('/token-launch/create-token-info', {
     method: 'POST',
@@ -72,9 +64,6 @@ export async function createTokenInfo({ name, symbol, description, imageUrl }) {
   return data;
 }
 
-/**
- * Create fee share config (step 2 of token create flow)
- */
 export async function createFeeShareConfig({ payer, baseMint, feeClaimers }) {
   const data = await bagsFetch('/fee-share/config', {
     method: 'POST',
@@ -90,9 +79,6 @@ export async function createFeeShareConfig({ payer, baseMint, feeClaimers }) {
   return data;
 }
 
-/**
- * Create launch transaction (step 3 of token create flow)
- */
 export async function createLaunchTransaction({ metadataUrl, tokenMint, launchWallet, initialBuyLamports, configKey }) {
   const data = await bagsFetch('/token-launch/create-launch-transaction', {
     method: 'POST',
@@ -107,51 +93,42 @@ export async function createLaunchTransaction({ metadataUrl, tokenMint, launchWa
   return data;
 }
 
-/**
- * Full token launch flow (combines steps 1-3)
- * Returns the transaction to sign
- */
 export async function fullTokenLaunch({ name, symbol, description, imageUrl, creatorPubkey, initialBuySOL = 0.01 }) {
-  // Step 1: Create token info + metadata
   const tokenInfo = await createTokenInfo({ name, symbol, description, imageUrl });
 
-  // Step 2: Create fee share config (creator gets 100%)
   const feeConfig = await createFeeShareConfig({
     payer: creatorPubkey,
-    baseMint: tokenInfo.tokenMint,
+    baseMint: tokenInfo.response?.tokenMint || tokenInfo.tokenMint,
     feeClaimers: [{ user: creatorPubkey, userBps: 10000 }],
   });
 
-  // Step 3: Create launch transaction
+  const tokenMint = tokenInfo.response?.tokenMint || tokenInfo.tokenMint;
+  const metadataUrl = tokenInfo.response?.tokenMetadata || tokenInfo.tokenMetadata;
+  const configKey = feeConfig.response?.meteoraConfigKey || feeConfig.meteoraConfigKey;
+
   const launchTx = await createLaunchTransaction({
-    metadataUrl: tokenInfo.tokenMetadata,
-    tokenMint: tokenInfo.tokenMint,
+    metadataUrl,
+    tokenMint,
     launchWallet: creatorPubkey,
     initialBuyLamports: Math.floor(initialBuySOL * LAMPORTS_PER_SOL),
-    configKey: feeConfig.meteoraConfigKey,
+    configKey,
   });
 
   return {
-    transaction: launchTx.transaction,
-    tokenMint: tokenInfo.tokenMint,
-    metadata: tokenInfo,
+    transaction: launchTx.response?.transaction || launchTx.transaction,
+    tokenMint,
+    metadata: tokenInfo.response || tokenInfo,
   };
 }
 
-/**
- * Get lifetime fees for a token
- */
 export async function getLifetimeFees(tokenMint) {
   const data = await bagsFetch(`/token-launch/lifetime-fees?tokenMint=${tokenMint}`);
   return data;
 }
 
-/**
- * Get claimable positions
- */
 export async function getClaimablePositions(wallet) {
   const data = await bagsFetch(`/token-launch/claimable-positions?wallet=${wallet}`);
   return data;
 }
 
-export { SOL_MINT, BAGS_API_BASE, apiKey };
+export { SOL_MINT, BAGS_API_BASE };
