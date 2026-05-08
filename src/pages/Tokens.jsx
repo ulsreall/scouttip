@@ -16,7 +16,6 @@ const Tokens = () => {
   const [bagTokens, setBagTokens] = useState([]);
   const [loadingFeed, setLoadingFeed] = useState(false);
 
-  // Load real token feed from Bags
   useEffect(() => {
     loadFeed();
   }, []);
@@ -24,23 +23,21 @@ const Tokens = () => {
   const loadFeed = async () => {
     setLoadingFeed(true);
     try {
-      const feed = await getTokenFeed(10);
+      const feed = await getTokenFeed(20);
       if (feed && Array.isArray(feed)) {
         setBagTokens(feed.map(t => ({
           name: t.name || 'Unknown',
           symbol: t.symbol || '???',
-          price: t.price ? `$${parseFloat(t.price).toFixed(6)}` : 'N/A',
-          change: t.priceChange ? `${t.priceChange > 0 ? '+' : ''}${t.priceChange.toFixed(1)}%` : 'N/A',
-          marketCap: t.marketCap ? formatNumber(t.marketCap) : 'N/A',
-          holders: t.holders || 0,
-          volume: t.volume24h ? formatNumber(t.volume24h) : 'N/A',
-          mint: t.mint || '',
+          description: t.description || '',
+          mint: t.tokenMint || '',
           image: t.image || '',
+          twitter: t.twitter || '',
+          website: t.website || '',
+          status: t.status || 'PRE_GRAD',
         })));
       }
     } catch (err) {
-      console.warn('Failed to load Bags feed, using fallback data:', err);
-      setBagTokens(fallbackTokens);
+      console.warn('Failed to load Bags feed:', err);
     } finally {
       setLoadingFeed(false);
     }
@@ -52,7 +49,6 @@ const Tokens = () => {
     setLaunchError('');
 
     try {
-      // Real Bags API launch flow
       const result = await fullTokenLaunch({
         name: tokenName,
         symbol: tokenSymbol,
@@ -61,10 +57,8 @@ const Tokens = () => {
         initialBuySOL: 0.01,
       });
 
-      // Deserialize and sign the transaction
       const tx = Transaction.from(Buffer.from(result.transaction, 'base64'));
       const signature = await sendTransaction(tx, connection);
-
       console.log('Token launched! TX:', signature, 'Mint:', result.tokenMint);
       setLaunched(true);
       setTimeout(() => {
@@ -85,9 +79,8 @@ const Tokens = () => {
     <div className="pt-20 pb-8 px-4 min-h-screen bg-grid">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-2xl font-bold text-white mb-2">{'\u{1FA99}'} Community Tokens</h1>
-        <p className="text-gray-400 mb-6">Launch and trade community tokens powered by Bags API on Solana</p>
+        <p className="text-gray-400 mb-6">Live tokens from Bags API on Solana</p>
 
-        {/* Tabs */}
         <div className="flex gap-2 mb-6">
           {[
             { key: 'explore', label: '\u{1F50D} Explore' },
@@ -108,63 +101,68 @@ const Tokens = () => {
         </div>
 
         {activeTab === 'explore' && (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {loadingFeed ? (
               <div className="text-center py-12">
                 <div className="inline-block w-10 h-10 border-4 border-purple-500/30 border-t-purple-500 rounded-full animate-spin mb-4"></div>
-                <p className="text-gray-400">Loading tokens from Bags...</p>
+                <p className="text-gray-400">Loading live tokens from Bags API...</p>
+              </div>
+            ) : bagTokens.length === 0 ? (
+              <div className="text-center py-12 text-gray-500">
+                <p>No tokens loaded. Check API key configuration.</p>
               </div>
             ) : (
               bagTokens.map((token, i) => (
-                <div key={i} className="glass-card p-5 hover:border-purple-500/30 transition-all">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                    <div className="flex items-center gap-3 flex-1">
-                      <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center text-lg font-bold text-purple-400 overflow-hidden">
-                        {token.image ? (
-                          <img src={token.image} alt={token.symbol} className="w-full h-full object-cover rounded-full" />
-                        ) : (
-                          token.symbol[0]
+                <div key={i} className="glass-card p-4 hover:border-purple-500/30 transition-all">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center overflow-hidden flex-shrink-0">
+                      {token.image ? (
+                        <img src={token.image} alt={token.symbol} className="w-full h-full object-cover rounded-xl" onError={e => { e.target.style.display='none'; }} />
+                      ) : (
+                        <span className="text-lg font-bold text-purple-400">{token.symbol[0]}</span>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                        <h3 className="font-semibold text-white">{token.name}</h3>
+                        <span className="text-xs text-gray-500">${token.symbol}</span>
+                        <span className={`badge text-xs ${
+                          token.status === 'GRADUATED' ? 'badge-green' :
+                          token.status === 'PRE_GRAD' ? 'badge-cyan' : 'badge-purple'
+                        }`}>
+                          {token.status === 'PRE_GRAD' ? 'New' : token.status}
+                        </span>
+                      </div>
+                      {token.description && (
+                        <p className="text-xs text-gray-400 mb-2 line-clamp-2">{token.description.slice(0, 120)}{token.description.length > 120 ? '...' : ''}</p>
+                      )}
+                      <div className="flex items-center gap-2 text-xs text-gray-500 flex-wrap">
+                        <span className="font-mono">{token.mint.slice(0, 6)}...{token.mint.slice(-4)}</span>
+                        {token.twitter && (
+                          <a href={token.twitter} target="_blank" rel="noreferrer" className="text-purple-400 hover:text-purple-300">X {'\u2197'}</a>
+                        )}
+                        {token.website && (
+                          <a href={token.website} target="_blank" rel="noreferrer" className="text-cyan-400 hover:text-cyan-300">Web {'\u2197'}</a>
                         )}
                       </div>
-                      <div>
-                        <h3 className="font-semibold text-white">{token.name}</h3>
-                        <span className="text-xs text-gray-400">${token.symbol}</span>
-                      </div>
                     </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
-                      <div>
-                        <div className="text-gray-500 text-xs">Price</div>
-                        <div className="text-white font-semibold">{token.price}</div>
-                      </div>
-                      <div>
-                        <div className="text-gray-500 text-xs">24h</div>
-                        <div className={`font-semibold ${
-                          token.change.startsWith('+') ? 'text-green-400' :
-                          token.change.startsWith('-') ? 'text-red-400' : 'text-gray-400'
-                        }`}>
-                          {token.change}
-                        </div>
-                      </div>
-                      <div>
-                        <div className="text-gray-500 text-xs">Market Cap</div>
-                        <div className="text-white font-semibold">{token.marketCap}</div>
-                      </div>
-                      <div>
-                        <div className="text-gray-500 text-xs">Volume</div>
-                        <div className="text-white font-semibold">{token.volume}</div>
-                      </div>
-                    </div>
-                    <div className="flex gap-2">
-                      {token.mint && (
-                        <a
-                          href={`https://bags.fm/${token.mint}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="btn-primary text-xs px-4 py-2"
-                        >
-                          Trade
-                        </a>
-                      )}
+                    <div className="flex flex-col gap-2 flex-shrink-0">
+                      <a
+                        href={`https://bags.fm/${token.mint}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="btn-primary text-xs px-4 py-2 text-center"
+                      >
+                        View on Bags
+                      </a>
+                      <a
+                        href={`https://solscan.io/token/${token.mint}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="btn-secondary text-xs px-4 py-2 text-center"
+                      >
+                        Solscan
+                      </a>
                     </div>
                   </div>
                 </div>
@@ -175,6 +173,9 @@ const Tokens = () => {
               <button onClick={loadFeed} className="btn-secondary text-sm">
                 {'\u{1F504}'} Refresh Feed
               </button>
+              <p className="text-xs text-gray-500 mt-2">
+                Powered by Bags API | {bagTokens.length} tokens loaded
+              </p>
             </div>
           </div>
         )}
@@ -186,6 +187,9 @@ const Tokens = () => {
                 <div className="text-5xl mb-4">{'\u{1F389}'}</div>
                 <h3 className="text-xl font-bold gradient-text mb-2">Token Launched!</h3>
                 <p className="text-gray-400">Your token is now live on Solana via Bags</p>
+                <a href="https://bags.fm" target="_blank" rel="noreferrer" className="text-sm text-purple-400 hover:text-purple-300 mt-2 inline-block">
+                  View on Bags {'\u2197'}
+                </a>
               </div>
             ) : (
               <>
@@ -251,18 +255,5 @@ const Tokens = () => {
     </div>
   );
 };
-
-function formatNumber(n) {
-  if (n >= 1e6) return `$${(n / 1e6).toFixed(1)}M`;
-  if (n >= 1e3) return `$${(n / 1e3).toFixed(0)}K`;
-  return `$${n}`;
-}
-
-const fallbackTokens = [
-  { name: "ScoutToken", symbol: "SCOUT", price: "$0.042", change: "+12.5%", marketCap: "$420K", holders: 1247, volume: "$89K", mint: "", image: "" },
-  { name: "AlphaCoin", symbol: "ALPHA", price: "$0.018", change: "+8.3%", marketCap: "$180K", holders: 856, volume: "$45K", mint: "", image: "" },
-  { name: "HuntToken", symbol: "HUNT", price: "$0.007", change: "-3.2%", marketCap: "$70K", holders: 432, volume: "$12K", mint: "", image: "" },
-  { name: "RadarCoin", symbol: "RADAR", price: "$0.031", change: "+22.1%", marketCap: "$310K", holders: 923, volume: "$67K", mint: "", image: "" },
-];
 
 export default Tokens;
